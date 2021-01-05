@@ -1,6 +1,7 @@
 from PIL import Image, ImageFilter, ImageEnhance
 import os
 from tkinter import Tk, filedialog
+import webbrowser
 
 image_extensions = ('.png', '.jpg', 'jfif', 'jpeg')
 selected_images, image_folder_path = [], []
@@ -272,10 +273,8 @@ def reset_values():
 
             elif user_choice == '2':
                 while True:
-                    user_choice = input(f"1. Filters\n2. Enhancements\n3. Size\n0. Reset Menu\
+                    user_choice = input(f"{draw_line()}\n1. Filters\n2. Enhancements\n3. Size\n0. Reset Menu\
                     \n{draw_line()}\nUSER:").split(' ')
-                    print(user_choice, user_choice[0], type(
-                        user_choice[0]), len(user_choice))
                     for x in user_choice:
                         if len(user_choice) == 1 and x == '0':
                             break
@@ -291,9 +290,9 @@ def reset_values():
                             except:
                                 continue
                     if user_choice != list('0'):
-                        print("Selected Values have been reset")
-                        break
-                    continue
+                        print(f"{draw_line()}\nSelected Values have been reset")
+                    break
+                continue
 
             else:
                 print("Enter a valid choice")
@@ -414,6 +413,18 @@ def apply_edits(image_folder, selected_images, selected_edits):
             extension = file_format
             image.save(f"{target_folder}/{img_name}.{extension}")
         num += 1
+    print(f"{draw_line()}\nAll images were saved to target folder: {target_folder}")
+    while True:
+        user_choice = input(f"{draw_line()}\nDo you want to open target folder?\n{draw_line()}"
+                            f"\nUSER(Y/N): ").lower()
+        if user_choice == 'y':
+            webbrowser.open(target_folder)
+        elif user_choice == 'n':
+            pass
+        else:
+            in_between("Enter a valid choice")
+            continue
+        break
 
 
 def apply_filters(selected_images, selected_filters, edited_images):
@@ -483,7 +494,6 @@ def apply_format():
         else:
             in_between("Enter a valid choice!")
             continue
-        print("Selected file format is", file_format)
         break
     return file_format
 
