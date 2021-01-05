@@ -269,7 +269,7 @@ def reset_values():
             elif user_choice == '1':
                 for edit in selected_edits:
                     edit.clear()
-                print("All values have been reset")
+                in_between("All values have been reset")
 
             elif user_choice == '2':
                 while True:
