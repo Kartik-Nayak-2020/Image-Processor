@@ -3,7 +3,7 @@ import os
 from tkinter import Tk, filedialog
 import webbrowser
 
-image_extensions = ('.png', '.jpg', 'jfif', 'jpeg')
+image_extensions = ('.png', '.jpg', 'jfif', 'jpeg', '.PNG', '.JPG', '.JFIF', '.JPEG')
 selected_images, image_folder_path = [], []
 image_filters, image_enhancements, image_resize = [], {}, {}
 selected_edits = [image_filters, image_enhancements, image_resize]
