@@ -5,13 +5,27 @@ from tkinter import Tk, filedialog
 import webbrowser
 
 
+errored_images = []
+img_extensions = []
+name_cnt, ext_cnt = 0, 0
+
+
 def get_username():
     for user, name in os.environ.items():
         if user == "USERNAME":
             return name
 
 
-def apply_edits(image_folder, selected_images, selected_edits):
+def apply_edits_main(image_folder, selected_images, finalized_edit_selection):
+    target_folder = select_target_folder()
+    apply_edits(selected_images, image_folder,
+                finalized_edit_selection, target_folder)
+    if len(errored_images) != 0:
+        print("Some images may not be processed, will be saved in \"target_folder/Unprocessed Image\"")
+    open_target_folder(target_folder)
+
+
+def select_target_folder():
     user_name = get_username()
     root = Tk()
     root.withdraw()
@@ -23,17 +37,13 @@ def apply_edits(image_folder, selected_images, selected_edits):
         if user_choice == '1':
             target_folder = filedialog.askdirectory()
             if target_folder:
-                print(f"All edited images will be saved to {target_folder}")
-                print("Target inside if", target_folder)
+                print(
+                    f"{fillchar.draw_line()}\nAll edited images will be saved to {target_folder}")
                 break
         elif user_choice == '2':
-            print(os.name)
-            input()
             if os.name == "posix":
-                print("Linux")
                 target_folder = f"/home/{user_name}/IPEdits"
             else:
-                print("Windows")
                 target_folder = f"C:/Users/{user_name}/IPEdits"
             if not os.path.exists(target_folder):
                 os.mkdir(target_folder)
@@ -42,126 +52,114 @@ def apply_edits(image_folder, selected_images, selected_edits):
                 break
         else:
             fillchar.in_between("Enter a valid choice")
+            continue
+        print("Target folder inside select_target_folder", target_folder)
+    return target_folder
+
+
+def apply_edits(selected_images, image_folder, selected_edits, target_folder):
     os.chdir(image_folder[0])
     image_filters = selected_edits[0]
     image_enhancements = selected_edits[1]
     image_resize = selected_edits[2]
-    num = 0
-    edited_images = []
-    img_extensions = []
-    fillchar.sub_menu("Applying Edits...")
-    if len(image_filters) != 0:
-        num += 1
-        edited_images = apply_filters(selected_images, image_filters, edited_images)
-        fillchar.in_between(f"Filters were added to {len(selected_images)} images")
-
-    if len(image_enhancements) != 0:
-        num += 1
-        if num == 2:
-            last_edits = edited_images
-        else:
-            last_edits = selected_images
-        edited_images = apply_enhancements(last_edits, image_enhancements, edited_images, num)
-        fillchar.in_between(f"Enhancements were added to {len(selected_images)} images")
-        if num == 2:
-            edited_images = edited_images[len(selected_images):]
-        num -= 1
-
-    if len(image_resize) != 0:
-        num += 1
-        if num == 2:
-            last_edits = edited_images
-        else:
-            last_edits = selected_images
-        edited_images, img_size, img_size_flag = apply_size(last_edits, image_resize, edited_images, num)
-        fillchar.in_between(f"{len(selected_images)} images were resized to {img_size} with {img_size_flag} property")
-        if num == 2:
-            edited_images = edited_images[len(selected_images):]
-        num -= 1
-
-    fillchar.in_between("All edits applied successfully")
-    file_format = apply_format()
-
+    file_format, img_extensions = get_format(selected_images)
+    fillchar.sub_menu("Saving in progress. Please wait...")
+    print("Images will be saved to =>", target_folder)
     for image in selected_images:
-        img_extensions.append(str(image).split('.')[-1])
-    num = 0
+        image = Image.open(image)
+        try:
+            if len(image_filters) != 0:
+                image = apply_filters(image, image_filters)
 
-    for image in edited_images:
-        img_name = selected_images[num]
-        img_name = '.'.join(img_name.split('.')[:-1])
-        if file_format == 'Default':
-            extension = img_extensions[num]
-            image.save(f"{target_folder}/{img_name}.{extension}")
+            if len(image_enhancements) != 0:
+                image = apply_enhancements(image, image_enhancements)
 
-        else:
-            extension = file_format
-            image.save(f"{target_folder}/{img_name}.{extension}")
-        num += 1
-    print(f"{fillchar.draw_line()}\nAll images were saved to target folder: {target_folder}")
+            if len(image_resize) != 0:
+                image = apply_size(image, image_resize)
+        except:
+            pass
+        save_images(image, selected_images, file_format,
+                    img_extensions, target_folder, image_folder)
+        image.close()
+
+
+def save_images(image, selected_images, file_format, image_extesnsions, target_folder, image_folder):
+    global name_cnt, ext_cnt
+    image_name = selected_images[name_cnt]
+    image_name = '.'.join(image_name.split('.')[:-1])
+    name_cnt += 1
+    if file_format == 'Default':
+        extension = image_extesnsions[ext_cnt]
+        ext_cnt += 1
+    else:
+        extension = file_format
+    try:
+        image.save(f"{target_folder}/{image_name}.{extension}")
+    except:
+        image_name = f"{image_name}.{file_format}"
+        if image_name in os.listdir(f"{target_folder}"):
+            os.remove(f"{target_folder}/{image_name}")
+        unprocessed_image(target_folder, selected_images, image_name, image)
+
+
+def unprocessed_image(target_folder, selected_images, image_name, image):
+    errored_image_folder = "Unprocessed Images"
+    if not os.path.exists(f"{target_folder}/{errored_image_folder}"):
+        os.mkdir(f"{target_folder}/{errored_image_folder}")
+        image_name = '.'.join(image_name.split('.')[:-1])
+        for x in selected_images:
+            extension = str(x).split('.')[1]
+            x = '.'.join(x.split('.')[:-1])
+            if x == image_name:
+                image.save(
+                    f"{target_folder}/{errored_image_folder}/{image_name}.{extension}")
+
+
+def open_target_folder(target_folder):
     while True:
         user_choice = input(f"{fillchar.draw_line()}\nDo you want to open target folder?\n{fillchar.draw_line()}"
                             f"\nUSER(Y/N): ").lower()
         if user_choice == 'y':
             webbrowser.open(target_folder)
+            break
         elif user_choice == 'n':
-            pass
+            break
         else:
             fillchar.in_between("Enter a valid choice")
-            continue
-        break
 
 
-def apply_filters(selected_images, selected_filters, edited_images):
-    print("Applying filters...")
-    for image in selected_images:
-        img = Image.open(image)
-        for filters in selected_filters:
-            img = img.filter(filters)
-        edited_images.append(img)
-    return edited_images
+def apply_filters(image, image_filters):
+    for filters in image_filters:
+        image = image.filter(filters)
+    return image
 
 
-def apply_enhancements(last_edits, image_enhancements, edited_images, num):
-    print("Applying Enhancements...")
-    for image in last_edits[:len(last_edits)]:
-        if num == 2:
-            pass
-        else:
-            image = Image.open(image)
-        for enhancement, val in image_enhancements.items():
-            image = enhancement(image)
-            image = image.enhance(val)
-        edited_images.append(image)
-    return edited_images
+def apply_enhancements(image, image_enhancements):
+    for enhancement, val in image_enhancements.items():
+        image = enhancement(image)
+        image = image.enhance(val)
+    return image
 
 
-def apply_size(last_edits, image_resize, edited_images, num):
+def apply_size(image, image_resize):
     img_size_flag = [x for x in image_resize.keys()][0]
     img_size = [x for x in image_resize.values()][0]
     img_width = int(img_size[0])
     img_height = int(img_size[1])
     img_size = (img_width, img_height)
-    print("Applying Size...")
-    for image in last_edits[:len(last_edits)]:
-        if num == 2:
-            pass
-        else:
-            image = Image.open(image)
-        if img_size_flag == 'Thumbnail':
-            image.thumbnail(img_size, Image.ANTIALIAS)
-            edited_images.append(image)
-        else:
-            image = image.resize(img_size)
-            edited_images.append(image)
-
-    return edited_images, img_size, img_size_flag
+    if img_size_flag == 'Thumbnail':
+        image.thumbnail(img_size, Image.ANTIALIAS)
+    else:
+        image = image.resize(img_size)
+    return image
 
 
-def apply_format():
+def get_format(selected_images):
     file_format = ""
     while True:
         fillchar.sub_menu(" Image Format Selector ")
-        user_choice = input(f"1. PNG\n2. JPEG\n3. JPG\n4. Default\n{fillchar.draw_line()}\nUSER:")
+        user_choice = input(
+            f"1. PNG\n2. JPEG\n3. JPG\n4. Default\n{fillchar.draw_line()}\nUSER:")
         if user_choice == '1':
             file_format = "png"
         elif user_choice == '2':
@@ -174,8 +172,11 @@ def apply_format():
             print("Enter a valid choice!")
             continue
         break
-    return file_format
+    for image in selected_images:
+        img_extensions.append(str(image).split('.')[-1])
+    return file_format, img_extensions
 
 
 if __name__ == "__main__":
-    apply_edits(image_folder="", selected_images=[], selected_edits=[])
+    apply_edits_main(image_folder=[], selected_images=[],
+                     finalized_edit_selection={})
