@@ -1,4 +1,4 @@
-
+'''Module to get ready to use fillchar in the program'''
 def main_menu(string="="):
     print(str(string).center(120, "="))
 

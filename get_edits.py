@@ -8,6 +8,7 @@ display_selected = {'Filters': image_filters, "Enhancements": image_enhancements
 
 
 def select_edits():
+    '''Function to select desired edits from edits menu for selected images'''
     while True:
         fillchar.sub_menu(' Edit Menu ')
         user_choice = input(f"1. Add filters\n2. Enhance Image\n3. Create thumbnail\n4. Show selection\n"
@@ -47,6 +48,7 @@ def select_edits():
 
 
 def select_filters():
+    '''Function to select filters for images'''
     fillchar.sub_menu(" Filter Selection Menu")
     if len(image_filters) != 10:
         filters = {1: ImageFilter.BLUR, 2: ImageFilter.CONTOUR, 3: ImageFilter.DETAIL,
@@ -78,6 +80,7 @@ def select_filters():
 
 
 def select_enhancements():
+    '''Function to select enhancements for images'''
     fillchar.sub_menu(" Enhancement Selection Menu ")
     if len(image_enhancements) != 4:
         enhancements = {1: ImageEnhance.Color, 2: ImageEnhance.Contrast,
@@ -120,6 +123,7 @@ def select_enhancements():
 
 
 def select_size():
+    '''Function to resize images or create thumbnail from selected images'''
     fillchar.sub_menu(" Image size selection Menu ")
     if len(image_resize) == 0:
         while True:
@@ -160,12 +164,14 @@ def select_size():
 
 
 def show_selection():
+    '''Function to display currently selected edits'''
     fillchar.sub_menu(" Selected Edits ")
     for edit_name, edit in display_selected.items():
         print(f"{edit_name} : {edit}")
 
 
 def reset_values():
+    '''Function to reset values of all selected edits or specific selected edits'''
     num = 0
     for edits in selected_edits:
         if len(edits) == 0:

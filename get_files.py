@@ -8,6 +8,7 @@ image_folder_path = []
 
 
 def select_files_menu():
+    '''Function to select or change image DIR'''
     while True:
         if not len(selected_images) == 0:
             if len(selected_images) > 3:
@@ -35,6 +36,7 @@ def select_files_menu():
 
 
 def select_dir_files():
+    '''Function to select source image directory or specific images in bulk'''
     root = Tk()
     root.withdraw()
     root.attributes('-topmost', True)

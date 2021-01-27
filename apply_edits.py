@@ -11,12 +11,19 @@ name_cnt, ext_cnt = 0, 0
 
 
 def get_username():
-    for user, name in os.environ.items():
-        if user == "USERNAME":
-            return name
+    '''Function to get the username from the system'''
+    if os.name == 'posix':
+        for user, name in os.environ.items():
+            if user == "USERNAME":
+                return name
+    else:
+        for user, name in os.environ.items():
+            if user == "USER":
+                return name
 
 
 def apply_edits_main(image_folder, selected_images, finalized_edit_selection):
+    '''Main function of the module conaining all the functions'''
     target_folder = select_target_folder()
     apply_edits(selected_images, image_folder,
                 finalized_edit_selection, target_folder)
@@ -26,6 +33,7 @@ def apply_edits_main(image_folder, selected_images, finalized_edit_selection):
 
 
 def select_target_folder():
+    '''Select target folder to save images'''
     user_name = get_username()
     root = Tk()
     root.withdraw()
@@ -58,6 +66,7 @@ def select_target_folder():
 
 
 def apply_edits(selected_images, image_folder, selected_edits, target_folder):
+    '''Apply selected edits to images one by one'''
     os.chdir(image_folder[0])
     image_filters = selected_edits[0]
     image_enhancements = selected_edits[1]
@@ -84,6 +93,7 @@ def apply_edits(selected_images, image_folder, selected_edits, target_folder):
 
 
 def save_images(image, selected_images, file_format, image_extesnsions, target_folder, image_folder):
+    '''Save images to the specified target folder'''
     global name_cnt, ext_cnt
     image_name = selected_images[name_cnt]
     image_name = '.'.join(image_name.split('.')[:-1])
@@ -103,6 +113,8 @@ def save_images(image, selected_images, file_format, image_extesnsions, target_f
 
 
 def unprocessed_image(target_folder, selected_images, image_name, image):
+    '''Exception handling for images which cannot be saved using user settings will be saved as copy 
+        in 'Unprocessed Images' folder in target folder'''
     errored_image_folder = "Unprocessed Images"
     if not os.path.exists(f"{target_folder}/{errored_image_folder}"):
         os.mkdir(f"{target_folder}/{errored_image_folder}")
@@ -116,6 +128,7 @@ def unprocessed_image(target_folder, selected_images, image_name, image):
 
 
 def open_target_folder(target_folder):
+    '''Open target folder to view saved images once all the tasks are completed'''
     while True:
         user_choice = input(f"{fillchar.draw_line()}\nDo you want to open target folder?\n{fillchar.draw_line()}"
                             f"\nUSER(Y/N): ").lower()
@@ -129,12 +142,14 @@ def open_target_folder(target_folder):
 
 
 def apply_filters(image, image_filters):
+    '''Function to apply selected filters to selected images'''
     for filters in image_filters:
         image = image.filter(filters)
     return image
 
 
 def apply_enhancements(image, image_enhancements):
+    '''Function to apply selected enhancements to selected  images'''
     for enhancement, val in image_enhancements.items():
         image = enhancement(image)
         image = image.enhance(val)
@@ -142,6 +157,7 @@ def apply_enhancements(image, image_enhancements):
 
 
 def apply_size(image, image_resize):
+    '''Function to resize and create thumbnail of the images'''
     img_size_flag = [x for x in image_resize.keys()][0]
     img_size = [x for x in image_resize.values()][0]
     img_width = int(img_size[0])
@@ -155,6 +171,7 @@ def apply_size(image, image_resize):
 
 
 def get_format(selected_images):
+    '''Function to get desired output image format for selected images'''
     file_format = ""
     while True:
         fillchar.sub_menu(" Image Format Selector ")
